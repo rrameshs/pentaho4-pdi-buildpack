@@ -1,6 +1,9 @@
-#!/usr/bin/env groovy
+#!/usr/bin/env bash
 
-println "config_vars:"
-println "    MY_ENV: Pentaho"
-println "default_process_types:"
-println "    web: echo 'done'"
+cat <<EOF
+---
+config_vars:
+  JAVA_OPTS: -XX:+UseCompressedOops
+default_process_types:
+  web: echo "done"
+EOF
