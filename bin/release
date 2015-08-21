@@ -1,0 +1,6 @@
+#!/usr/bin/env groovy
+
+println "config_vars:"
+println "    MY_ENV: Pentaho"
+println "default_process_types:"
+println "    web: echo 'done'"
