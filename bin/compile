@@ -1,3 +1,16 @@
 #!/usr/bin/env bash
 
-echo "COMPILE"
+set -e
+
+build_path=$1
+cache_path=$2
+
+echo "build_path=" ${build_path}
+echo "cache_path=" ${cache_path}
+
+mkdir -p ${cache_path}
+mkdir -p ${build_path}
+
+echo "Downloading Java..."
+curl https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz > ${cache_path}/openjdk.tar.gz
+tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}
