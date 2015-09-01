@@ -1,4 +1,4 @@
-#!/usr/bin/env groovy
+#!/usr/bin/env bash
 
-println "DETECT"
-System.exit 1
+echo "DETECT"
+exit 1
