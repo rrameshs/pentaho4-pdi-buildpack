@@ -17,11 +17,11 @@ mkdir ${build_path}/.pdi-buildpack/open_jdk_jre
 tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jre
 
 echo "-----> Downloading PDI..."
-curl -s "http://downloads.sourceforge.net/project/pentaho/Data Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
+curl -s -L "http://downloads.sourceforge.net/project/pentaho/Data Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
 mkdir ${build_path}/.pdi-buildpack/pdi
 tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
 
 echo "-----> Downloading Liquibase..."
-curl -s "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${cache_path}/liquibase.tar.gz
+curl -s -L "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${cache_path}/liquibase.tar.gz
 mkdir ${build_path}/.pdi-buildpack/liquibase
 tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
