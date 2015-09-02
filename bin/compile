@@ -16,12 +16,12 @@ curl -v "https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60
 mkdir ${build_path}/.pdi-buildpack/open_jdk_jre
 tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jre
 
-echo "-----> Downloading PDI..."
-curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
-mkdir ${build_path}/.pdi-buildpack/pdi
-tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
-
 echo "-----> Downloading Liquibase..."
 curl -v -L "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${cache_path}/liquibase.tar.gz
 mkdir ${build_path}/.pdi-buildpack/liquibase
 tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
+
+echo "-----> Downloading PDI..."
+curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
+mkdir ${build_path}/.pdi-buildpack/pdi
+tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
