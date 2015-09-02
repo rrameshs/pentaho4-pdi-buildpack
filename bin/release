@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+set -e
+
+build_path=$1
+
 cat <<EOF
 ---
+config_vars:
+  JAVA_HOME: ${build_path}/.pdi-buildpack/open_jdk_jre
 default_process_types:
   web: sleep 365d
 EOF
