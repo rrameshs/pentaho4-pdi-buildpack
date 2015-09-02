@@ -11,6 +11,14 @@ echo "cache_path=" ${cache_path}
 mkdir -p ${cache_path}
 mkdir -p ${build_path}
 
-#echo "Downloading Java..."
-#curl https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz > ${cache_path}/openjdk.tar.gz
-#tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}
+echo "-----> Downloading Java..."
+curl -s https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz > ${cache_path}/openjdk.tar.gz
+tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jre
+
+echo "-----> Downloading PDI..."
+curl -s http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz > ${cache_path}/pdi.tar.gz
+tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
+
+echo "-----> Downloading Liquibase..."
+curl -s https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz > ${cache_path}/liquibase.tar.gz
+tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
