@@ -29,3 +29,20 @@ echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0
 #curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
 mkdir ${build_path}/.pdi-buildpack/pdi
 tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
+
+#move kettle.properties to .kettle dir
+mkdir -p ${build_path}/.kettle
+mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
+
+#make sure scripts are executable and log file is ther
+chmod u+x ${build_path}/scripts/*
+mkdir -p ${build_path}/etl/log
+
+#link 'pentaho' to pdi
+cd ${build_path}
+ln -s ${build_path}/.pdi-buildpack/pdi pentaho
+
+#possibly need link for ETL_DIR ??
+cd ${build_path}/.pdi-buildpack/pdi/data-integration
+ln -s ${build_path}/etl etl
+
