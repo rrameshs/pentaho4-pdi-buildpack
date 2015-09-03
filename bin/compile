@@ -15,6 +15,7 @@ cp ${dir}/../lib/test.txt ${build_path}
 
 mkdir -p ${build_path}/.profile.d
 cp ${dir}/../profile/* ${build_path}/.profile.d/
+chmod u+x ${build_path}/.profile.d/*
 
 #mkdir -p ${cache_path}
 #mkdir -p ${build_path}/.pdi-buildpack
