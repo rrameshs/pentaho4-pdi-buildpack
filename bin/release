@@ -7,5 +7,5 @@ build_path=$1
 cat <<EOF
 ---
 default_process_types:
-  web: sleep 365d
+  web: export JAVA_HOME=${build_path}/.pdi-buildpack/open_jdk_jre && export KETTLE_HOME=${build_path} && sleep 365d
 EOF

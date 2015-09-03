@@ -13,9 +13,6 @@ echo "bp path=" ${dir}
 
 cp ${dir}/../lib/test.txt ${build_path}
 
-export JAVA_HOME=${build_path}/.pdi-buildpack/open_jdk_jre
-export KETTLE_HOME=${build_path}
-
 #mkdir -p ${cache_path}
 #mkdir -p ${build_path}/.pdi-buildpack
 
