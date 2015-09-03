@@ -19,7 +19,7 @@ echo "export JAVA_HOME=$HOME/.pdi-buildpack/open_jdk_jre" >> ${build_path}/../se
 echo "export KETTLE_HOME=$HOME" >> ${build_path}/../setenv.sh
 
 #mkdir -p ${cache_path}
-cp ${dir}/../lib/reportdb_template ${cache_path}
+#cp ${dir}/../lib/reportdb_template ${cache_path}
 
 #mkdir -p ${build_path}/.pdi-buildpack
 
