@@ -11,13 +11,16 @@ echo "cache_path=" ${cache_path}
 dir=`dirname $0`
 echo "bp path=" ${dir}
 
-cp ${dir}/../lib/test.txt ${build_path}
-
 mkdir -p ${build_path}/.profile.d
 cp ${dir}/../profile/* ${build_path}/.profile.d/
 chmod u+x ${build_path}/.profile.d/*
 
+echo "export JAVA_HOME=$HOME/.pdi-buildpack/open_jdk_jre" >> ${build_path}/../setenv.sh
+echo "export KETTLE_HOME=$HOME" >> ${build_path}/../setenv.sh
+
 #mkdir -p ${cache_path}
+cp ${dir}/../lib/reportdb_template ${cache_path}
+
 #mkdir -p ${build_path}/.pdi-buildpack
 
 #echo "-----> Downloading Java..."
