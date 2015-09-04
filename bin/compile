@@ -51,7 +51,7 @@ echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0
 mkdir ${build_path}/.pdi-buildpack/pdi
 #tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
 #faking for now
-mdir ${build_path}/.pdi-buildpack/pdi/data-integration
+mkdir ${build_path}/.pdi-buildpack/pdi/data-integration
 
 echo "-----> Downloading Liquibase..."
 echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${build_path}/.pdi-buildpack/liquibase
