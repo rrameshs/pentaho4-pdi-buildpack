@@ -6,6 +6,9 @@ build_path=$1
 cache_path=$2
 bp_dir=`dirname $0`
 
+#make sure dirs exist
+mkdir -p ${build_path} ${cache_path}
+
 #extract the ETL package to run
 echo "-----> Unpacking ETL tar file..."
 tar_count=`ls -1 ${build_path}/*.tar.gz | wc -l`
