@@ -18,6 +18,7 @@ if [[ $tar_count -gt 1 ]]; then
 	exit 2 
 fi
 tar_name=`ls ${build_path}/*.tar.gz`
+mkdir ${cache_path}/pkg
 tar zxf ${tar_name} -C ${cache_path}/pkg
 dir_count=`ls -1 ${cache_path}/pkg | wc -l`
 if [[ $dir_count -lt 1 ]]; then
