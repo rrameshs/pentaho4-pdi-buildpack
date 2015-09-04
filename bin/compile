@@ -4,63 +4,108 @@ set -e
 
 build_path=$1
 cache_path=$2
+bp_dir=`dirname $0`
 
-echo "build_path=" ${build_path}
-echo "cache_path=" ${cache_path}
+#extract the ETL package to run
+echo "-----> Unpacking ETL tar file..."
+tar_count=`ls -1 ${build_path}/*.tar.gz | wc -l`
+if [[$tar_count -lt 1]]; then
+	echo "ERROR: No tar file found - nothing to deploy"
+	exit 1
+fi
+if [[$tar_count -gt 1]]; then
+	echo "ERROR: More than one tar file found - don't know which one to unpack"
+	exit 2 
+fi
+tar_name=`ls ${build_path}/*.tar.gz`
+tar zxf ${tar_name} -C ${cache_path}/pkg
+dir_count=`ls -1 ${cache_path}/pkg | wc -l`
+if [[$dir_count -lt 1]]; then
+	echo "ERROR: Tar file is empty - nothing to deploy"
+	exit 3
+fi
+if [[$dir_count -gt 1]]; then
+	echo "ERROR: Tar file contained more than one directory - don't know which one to use"
+	exit 4
+fi
+echo "      Moving extracted package into place"
+mv ${cache_path}/pkg/*/* ${build_path}
 
-dir=`dirname $0`
-echo "bp path=" ${dir}
+#create buildpack dir and download dependencies
+mkdir -p ${build_path}/.pdi-buildpack
 
-mkdir -p ${build_path}/.profile.d
-cp ${dir}/../profile/* ${build_path}/.profile.d/
-chmod u+x ${build_path}/.profile.d/*
+echo "-----> Downloading Java..."
+echo "       Installing https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz to " ${build_path}/.pdi-buildpack/open_jdk_jre
+curl -s "https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz" > ${cache_path}/openjdk.tar.gz
+mkdir ${build_path}/.pdi-buildpack/open_jdk_jre
+tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jre
 
-echo "export JAVA_HOME=$HOME/.pdi-buildpack/open_jdk_jre" >> ${build_path}/../setenv.sh
-echo "export KETTLE_HOME=$HOME" >> ${build_path}/../setenv.sh
-
-#mkdir -p ${cache_path}
-#cp ${dir}/../lib/reportdb_template ${cache_path}
-
-#mkdir -p ${build_path}/.pdi-buildpack
-
-#echo "-----> Downloading Java..."
-#echo "       Installing https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz to " ${build_path}/.pdi-buildpack/open_jdk_jre
-#curl -s "https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz" > ${cache_path}/openjdk.tar.gz
-#mkdir ${build_path}/.pdi-buildpack/open_jdk_jre
-#tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jre
-
-#echo "-----> Downloading Liquibase..."
-#echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${build_path}/.pdi-buildpack/liquibase
-#curl -s -L "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${cache_path}/liquibase.tar.gz
-#mkdir ${build_path}/.pdi-buildpack/liquibase
-#tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
-
-#echo "-----> Downloading PDI..."
-#echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz to " ${build_path}/.pdi-buildpack/pdi
+echo "-----> Downloading PDI..."
+echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz to " ${build_path}/.pdi-buildpack/pdi
 #curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
 #curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
-#mkdir ${build_path}/.pdi-buildpack/pdi
+mkdir ${build_path}/.pdi-buildpack/pdi
 #tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
 
-#echo "-----> Auto-reconfiguration..."
+echo "-----> Downloading Liquibase..."
+echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${build_path}/.pdi-buildpack/liquibase
+curl -s -L "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${cache_path}/liquibase.tar.gz
+mkdir ${build_path}/.pdi-buildpack/liquibase
+tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
 
+#copy liquibase scripts from buildpack
+cp -r ${bp_dir}/../lib/reportdb_template ${build_path}/.pdi-buildpack/liquibase
+#create liquibase.properties
+echo "classpath=${build_path}/.pdi-buildpack/pdi/libext/JDBC/postgresql-8.4-702.jdbc3.jar" > ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
+echo "changeLogFile=reportdb_template/changelog-master.xml" >> ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
+
+echo "-----> Auto-reconfiguration..."
+echo "       Configuring ETL directory"
 #link for ETL_DIR
-#cd ${build_path}/.pdi-buildpack/pdi/data-integration
-#ln -s ${build_path} etl
+cd ${build_path}/.pdi-buildpack/pdi/data-integration
+ln -s ${build_path} etl
 
 #edit kettle.properties and move to .kettle dir
-#echo "ETL_DIR=etl" >> ${build_path}/kettle.properties
-#mkdir -p ${build_path}/.kettle
-#mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
+echo "ETL_DIR=etl" >> ${build_path}/kettle.properties
+mkdir ${build_path}/.kettle
+mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
 
+echo "      Configuring PDI directory"
 #link 'pentaho' to pdi
-#cd ${build_path}
-#ln -s ${build_path}/.pdi-buildpack/pdi pentaho
+cd ${build_path}
+ln -s ${build_path}/.pdi-buildpack/pdi pentaho
 
 #edit scripts to use pentaho link
-#cd ${build_path}/scripts
-#grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/pentaho|g'
+cd ${build_path}/scripts
+grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/pentaho|g'
 
-#create DB setup script
+echo "      Configuring Pentaho environment"
+#add .profile.d script to set environment
+mkdir -p ${build_path}/.profile.d
+cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
 
+#edit pentaho env script to source .profile.d
+sed ${build_path}/.pdi-buildpack/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i source $HOME/.profile.d/setenv.sh''
 
+echo "-----> Setting up report database..."
+source $HOME/.kettle/kettle.properties
+export PGPASSWORD=$REPORTING_DB_PW
+
+DB_EXISTS=`psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -l | grep $REPORTING_DB_NAME | wc -l`
+
+if [[$DB_EXISTS -eq 1]]; then
+	echo "      Database ${REPORTING_DB_NAME} already exists on ${REPORTING_DB_HOST}"
+else
+	echo "      Creating database ${REPORTING_DB_NAME} on ${REPORTING_DB_HOST}"
+    psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -d postgres -c "create database $REPORTING_DB_NAME;"
+	echo "      Creating schemas"
+    psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -d $REPORTING_DB_NAME -c "create schema dw; create schema mart;"    
+	echo "      Executing DDL"
+    ${build_path}/.pdi-buildpack/liquibase --username=$REPORTING_DB_USER --password=$REPORTING_DB_PW --url=jdbc:postgresql://$REPORTING_DB_HOST:$REPORTING_DB_PORT/$REPORTING_DB_NAME update
+	echo "      Populating dimension tables"
+	/bin/bash ${build_path}/scripts/loadHelper.sh
+	echo "      Running loadIncremental"
+	/bin/bash ${build_path}/scripts/loadIncremental.sh 
+fi
+
+echo "-----> Deployment complete"
