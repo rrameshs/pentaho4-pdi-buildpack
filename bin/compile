@@ -10,7 +10,7 @@ bp_dir=`dirname $0`
 mkdir -p ${build_path} ${cache_path}
 
 #extract the ETL package to run
-echo "-----> Unpacking ETL tar file..."
+echo "-----> Unpacking ETL tar file"
 tar_count=`ls -1 ${build_path}/*.tar.gz | wc -l`
 if [[ $tar_count -lt 1 ]]; then
 	echo "ERROR: No tar file found - nothing to deploy"
@@ -51,8 +51,6 @@ echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0
 curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
 mkdir ${build_path}/.pdi-buildpack/pdi
 tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
-#faking for now
-#mkdir ${build_path}/.pdi-buildpack/pdi/data-integration
 
 echo "-----> Downloading Liquibase..."
 echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${build_path}/.pdi-buildpack/liquibase
@@ -60,32 +58,18 @@ curl -s -L "https://github.com/liquibase/liquibase/releases/download/liquibase-p
 mkdir ${build_path}/.pdi-buildpack/liquibase
 tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
 
-#copy liquibase scripts from buildpack
-cp -r ${bp_dir}/../lib/reportdb_template ${build_path}/.pdi-buildpack/liquibase
-#create liquibase.properties
-echo "classpath=~/.pdi-buildpack/pdi/libext/JDBC/postgresql-8.4-702.jdbc3.jar" > ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
-echo "changeLogFile=reportdb_template/changelog-master.xml" >> ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
-
-echo "-----> Auto-reconfiguration..."
-echo "       Configuring ETL directory"
-#link for ETL_DIR
-cd ${build_path}/.pdi-buildpack/pdi/data-integration
-ln -s ../../.. etl
-
+echo "-----> Applying auto-reconfiguration"
+echo "       Editing kettle.properties"
 #edit kettle.properties and move to .kettle dir
 mkdir ${build_path}/.kettle
 mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
 sed ${build_path}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d'
-echo "ETL_DIR=etl" >> ${build_path}/.kettle/kettle.properties
+echo "ETL_DIR=../../.." >> ${build_path}/.kettle/kettle.properties
 
-echo "       Configuring PDI directory"
-#link 'pentaho' to pdi
-cd ${build_path}
-ln -s .pdi-buildpack/pdi pentaho
-
+echo "       Editing scripts"
 #edit scripts to use pentaho link
 cd ${build_path}/scripts
-grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/pentaho|g'
+grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/.pdi-buildpack/pdi|g'
 
 echo "       Configuring Pentaho environment"
 #add .profile.d script to set environment
@@ -93,27 +77,14 @@ mkdir -p ${build_path}/.profile.d
 cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
 
 #edit pentaho env script to source .profile.d
-sed ${build_path}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i source $HOME/.profile.d/setenv.sh'
+sed ${build_path}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
 
-echo "-----> Setting up report database..."
-source ${build_path}/.kettle/kettle.properties
-export PGPASSWORD=$REPORTING_DB_PW
+echo "       Creating database setup script"
+mkdir ${build_path}/.pdi-buildpack/db_setup
+#copy liquibase scripts from buildpack
+cp -r ${bp_dir}/../resources/db_setup/* ${build_path}/.pdi-buildpack/db_setup
+#create liquibase.properties
+echo "classpath=../pdi/data-integration/libext/JDBC/postgresql-8.4-702.jdbc3.jar" > ${build_path}/.pdi-buildpack/db_setup/liquibase.properties
+echo "changeLogFile=reportdb_template/changelog-master.xml" >> ${build_path}/.pdi-buildpack/db_setup/liquibase.properties
 
-DB_EXISTS=`psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -l | grep $REPORTING_DB_NAME | wc -l`
-
-if [[ $DB_EXISTS -eq 1 ]]; then
-	echo "      Database ${REPORTING_DB_NAME} already exists on ${REPORTING_DB_HOST}"
-else
-	echo "      Creating database ${REPORTING_DB_NAME} on ${REPORTING_DB_HOST}"
-    psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -d postgres -c "create database $REPORTING_DB_NAME;"
-	echo "      Creating schemas"
-    psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -d $REPORTING_DB_NAME -c "create schema dw; create schema mart;"    
-	echo "      Executing DDL"
-    ${build_path}/.pdi-buildpack/liquibase --username=$REPORTING_DB_USER --password=$REPORTING_DB_PW --url=jdbc:postgresql://$REPORTING_DB_HOST:$REPORTING_DB_PORT/$REPORTING_DB_NAME update
-	echo "      Populating dimension tables"
-	/bin/bash ${build_path}/scripts/loadHelper.sh
-	echo "      Running loadIncremental"
-	/bin/bash ${build_path}/scripts/loadIncremental.sh 
-fi
-
-echo "-----> Deployment complete"
+echo "-----> Staging complete. Preparing upload..."
