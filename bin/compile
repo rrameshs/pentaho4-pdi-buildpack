@@ -95,7 +95,7 @@ cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
 #sed ${build_path}/.pdi-buildpack/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i source $HOME/.profile.d/setenv.sh'
 
 echo "-----> Setting up report database..."
-source $HOME/.kettle/kettle.properties
+source ${build_path}/.kettle/kettle.properties
 export PGPASSWORD=$REPORTING_DB_PW
 
 DB_EXISTS=`psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -l | grep $REPORTING_DB_NAME | wc -l`
