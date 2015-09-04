@@ -23,6 +23,7 @@ fi
 tar_name=`ls ${build_path}/*.tar.gz`
 mkdir ${cache_path}/pkg
 tar zxf ${tar_name} -C ${cache_path}/pkg
+rm -f ${tar_name}
 dir_count=`ls -1 ${cache_path}/pkg | wc -l`
 if [[ $dir_count -lt 1 ]]; then
 	echo "ERROR: Tar file is empty - nothing to deploy"
@@ -32,7 +33,7 @@ if [[ $dir_count -gt 1 ]]; then
 	echo "ERROR: Tar file contained more than one directory - don't know which one to use"
 	exit 4
 fi
-echo "      Moving extracted package into place"
+echo "       Moving extracted package into place"
 mv ${cache_path}/pkg/*/* ${build_path}
 
 #create buildpack dir and download dependencies
@@ -47,11 +48,11 @@ tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jr
 echo "-----> Downloading PDI..."
 echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz to " ${build_path}/.pdi-buildpack/pdi
 #curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
-#curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
+curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
 mkdir ${build_path}/.pdi-buildpack/pdi
-#tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
+tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
 #faking for now
-mkdir ${build_path}/.pdi-buildpack/pdi/data-integration
+#mkdir ${build_path}/.pdi-buildpack/pdi/data-integration
 
 echo "-----> Downloading Liquibase..."
 echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${build_path}/.pdi-buildpack/liquibase
@@ -62,37 +63,37 @@ tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
 #copy liquibase scripts from buildpack
 cp -r ${bp_dir}/../lib/reportdb_template ${build_path}/.pdi-buildpack/liquibase
 #create liquibase.properties
-echo "classpath=${build_path}/.pdi-buildpack/pdi/libext/JDBC/postgresql-8.4-702.jdbc3.jar" > ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
+echo "classpath=~/.pdi-buildpack/pdi/libext/JDBC/postgresql-8.4-702.jdbc3.jar" > ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
 echo "changeLogFile=reportdb_template/changelog-master.xml" >> ${build_path}/.pdi-buildpack/liquibase/liquibase.properties
 
 echo "-----> Auto-reconfiguration..."
 echo "       Configuring ETL directory"
 #link for ETL_DIR
 cd ${build_path}/.pdi-buildpack/pdi/data-integration
-ln -s ${build_path} etl
+ln -s ../../.. etl
 
 #edit kettle.properties and move to .kettle dir
-sed ${build_path}/kettle.properties -i.bak -e '/ETL_DIR/d'
-echo "ETL_DIR=etl" >> ${build_path}/kettle.properties
 mkdir ${build_path}/.kettle
 mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
+sed ${build_path}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d'
+echo "ETL_DIR=etl" >> ${build_path}/.kettle/kettle.properties
 
-echo "      Configuring PDI directory"
+echo "       Configuring PDI directory"
 #link 'pentaho' to pdi
 cd ${build_path}
-ln -s ${build_path}/.pdi-buildpack/pdi pentaho
+ln -s .pdi-buildpack/pdi pentaho
 
 #edit scripts to use pentaho link
 cd ${build_path}/scripts
 grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/pentaho|g'
 
-echo "      Configuring Pentaho environment"
+echo "       Configuring Pentaho environment"
 #add .profile.d script to set environment
 mkdir -p ${build_path}/.profile.d
 cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
 
 #edit pentaho env script to source .profile.d
-#sed ${build_path}/.pdi-buildpack/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i source $HOME/.profile.d/setenv.sh'
+sed ${build_path}/.pdi-buildpack/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i source $HOME/.profile.d/setenv.sh'
 
 echo "-----> Setting up report database..."
 source ${build_path}/.kettle/kettle.properties
