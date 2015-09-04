@@ -66,6 +66,7 @@ cd ${build_path}/.pdi-buildpack/pdi/data-integration
 ln -s ${build_path} etl
 
 #edit kettle.properties and move to .kettle dir
+sed ${build_path}/kettle.properties -i.bak -e '/ETL_DIR/d'
 echo "ETL_DIR=etl" >> ${build_path}/kettle.properties
 mkdir ${build_path}/.kettle
 mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
