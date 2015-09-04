@@ -9,22 +9,22 @@ bp_dir=`dirname $0`
 #extract the ETL package to run
 echo "-----> Unpacking ETL tar file..."
 tar_count=`ls -1 ${build_path}/*.tar.gz | wc -l`
-if [[$tar_count -lt 1]]; then
+if [$tar_count -lt 1]; then
 	echo "ERROR: No tar file found - nothing to deploy"
 	exit 1
 fi
-if [[$tar_count -gt 1]]; then
+if [$tar_count -gt 1]; then
 	echo "ERROR: More than one tar file found - don't know which one to unpack"
 	exit 2 
 fi
 tar_name=`ls ${build_path}/*.tar.gz`
 tar zxf ${tar_name} -C ${cache_path}/pkg
 dir_count=`ls -1 ${cache_path}/pkg | wc -l`
-if [[$dir_count -lt 1]]; then
+if [$dir_count -lt 1]; then
 	echo "ERROR: Tar file is empty - nothing to deploy"
 	exit 3
 fi
-if [[$dir_count -gt 1]]; then
+if [$dir_count -gt 1]; then
 	echo "ERROR: Tar file contained more than one directory - don't know which one to use"
 	exit 4
 fi
@@ -94,7 +94,7 @@ export PGPASSWORD=$REPORTING_DB_PW
 
 DB_EXISTS=`psql -h $REPORTING_DB_HOST -p $REPORTING_DB_PORT -U $REPORTING_DB_USER -l | grep $REPORTING_DB_NAME | wc -l`
 
-if [[$DB_EXISTS -eq 1]]; then
+if [$DB_EXISTS -eq 1]; then
 	echo "      Database ${REPORTING_DB_NAME} already exists on ${REPORTING_DB_HOST}"
 else
 	echo "      Creating database ${REPORTING_DB_NAME} on ${REPORTING_DB_HOST}"
