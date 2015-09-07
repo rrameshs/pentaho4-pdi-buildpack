@@ -21,11 +21,11 @@ ls -al ${build_path}/..
 echo ".env ..."
 cat ${build_path}/../.env
 
-echo "home"
+echo "home $HOME"
 ls -al $HOME
 
-echo "Cache path ${cache_path}"
-ls -al ${cache_path}
+echo ".bashrc ..."
+cat $HOME/.bashrc
 
 #extract the ETL package to run
 echo "-----> Unpacking ETL tar file"
