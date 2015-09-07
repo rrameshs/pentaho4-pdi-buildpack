@@ -84,13 +84,11 @@ cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
 #edit pentaho env script to source .profile.d
 #sed ${build_path}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
 
-echo "       Creating database setup script"
-#copy liquibase scripts from buildpack
-mkdir ${build_path}/.pdi-buildpack/db_setup
-cp -r ${bp_dir}/../resources/db_setup/* ${build_path}/.pdi-buildpack/db_setup
-chmod ugo+x ${build_path}/.pdi-buildpack/db_setup/createReportDatabase.sh
-
+#copy web proc script
 cp ${bp_dir}/../lib/web_proc.sh ${build_path}
 chmod u+x ${build_path}/web_proc.sh
 
-echo "-----> Staging complete."
+echo "-----> Provisioning databases"
+. ${bp_dir}/../lib/database.sh
+
+echo "-----> Staging complete"
