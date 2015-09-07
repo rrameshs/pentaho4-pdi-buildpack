@@ -32,7 +32,28 @@ create_db() {
 	fi
 	
 	#create any call log dbs specified in kettle.properties
+	counter=1
+	key=LOGGING_${counter}_DB_NAME
+	while [[ `grep $key $kettle_props | wc -l` -gt 0 ]]; do
 
+		eval dbname=\$LOGGING_${counter}_DB_NAME
+		eval dbhost=\$LOGGING_${counter}_DB_HOST
+		eval dbport=\$LOGGING_${counter}_DB_PORT
+		eval dbuser=\$LOGGING_${counter}_DB_USER
+		eval dbpwd=\$LOGGING_${counter}_DB_PW
+		
+		echo "Creating database ${dbname} on ${dbhost} ..."
+		export PGPASSWORD=$dbpwd
+		db_exists=`psql -h $dbhost -p $dbport -U $dbuser -l | grep $dbname | wc -l`
+		if [[ $db_exists -eq 1 ]]; then
+			echo "Database already exists"
+		else
+			psql -h $dbhost -p $dbport -U $dbuser -d postgres -c "create database ${dbname};"
+		fi	
+
+        let counter+=1
+        key=LOGGING_${counter}_DB_NAME
+	done
 	
 	echo "Done"
 }
