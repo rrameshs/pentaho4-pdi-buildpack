@@ -9,6 +9,15 @@ bp_dir=`dirname $0`
 #make sure dirs exist
 mkdir -p ${build_path} ${cache_path}
 
+echo "Current Dir -------------"
+ls -l ${bp_dir}
+
+echo "Build path -------------" 
+ls -l ${build_path}
+
+echo "Cache path ------------"
+ls -l ${cache_path}
+
 #extract the ETL package to run
 echo "-----> Unpacking ETL tar file"
 tar_count=`ls -1 ${build_path}/*.tar.gz | wc -l`
