@@ -7,5 +7,5 @@ build_path=$1
 cat <<EOF
 ---
 default_process_types:
-  web: sleep 365d
+  web: ${build_path}/.pdi-buildpack/pdi/web_proc.sh
 EOF
