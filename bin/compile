@@ -18,6 +18,12 @@ ls -al ${build_path}
 echo "Build path ${build_path}/.." 
 ls -al ${build_path}/..
 
+echo ".env ..."
+cat ${build_path}/../.env
+
+echo "home"
+ls -al $HOME
+
 echo "Cache path ${cache_path}"
 ls -al ${cache_path}
 
