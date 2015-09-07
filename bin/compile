@@ -48,7 +48,7 @@ tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jr
 echo "-----> Downloading PDI..."
 echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz to " ${build_path}/.pdi-buildpack/pdi
 #curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
-if [! -f ${cache_path}/pdi.tar.gz]; then
+if [[ ! -f ${cache_path}/pdi.tar.gz ]]; then
 	curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
 else
 	echo "      Using cached file"
