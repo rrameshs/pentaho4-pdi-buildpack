@@ -2,10 +2,8 @@
 
 set -e
 
-build_path=$1
-
 cat <<EOF
 ---
 default_process_types:
-  web: sleep 365d
+  web: ./web_proc.sh
 EOF

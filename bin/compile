@@ -90,7 +90,7 @@ mkdir ${build_path}/.pdi-buildpack/db_setup
 cp -r ${bp_dir}/../resources/db_setup/* ${build_path}/.pdi-buildpack/db_setup
 chmod ugo+x ${build_path}/.pdi-buildpack/db_setup/createReportDatabase.sh
 
-cp ${bp_dir}/../lib/web_proc.sh ${build_path}/.pdi-buildpack/pdi
-chmod u+x ${build_path}/.pdi-buildpack/pdi/web_proc.sh
+cp ${bp_dir}/../lib/web_proc.sh ${build_path}
+chmod u+x ${build_path}/web_proc.sh
 
 echo "-----> Staging complete."
