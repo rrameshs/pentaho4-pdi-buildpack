@@ -89,6 +89,7 @@ cp ${bp_dir}/../lib/web_proc.sh ${build_path}
 chmod u+x ${build_path}/web_proc.sh
 
 echo "-----> Provisioning databases"
-. ${bp_dir}/../lib/database.sh
+source ${bp_dir}/../lib/database.sh
+create_db ${build_path}/.kettle/kettle.properties
 
 echo "-----> Staging complete"

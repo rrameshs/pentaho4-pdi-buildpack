@@ -2,7 +2,8 @@
 
 create_db() {
 	
-	source $1/.kettle/kettle.properties
+	local kettle_props=$1
+	source $kettle_props
 
 	#create the report db specified in kettle.properties
 	export PGPASSWORD=$REPORTING_DB_PW
