@@ -65,6 +65,7 @@ tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
 export PATH=$PATH:${build_path}/.pdi-buildpack/liquibase
 echo "PATH=$PATH"
 
+
 echo "-----> Applying auto-reconfiguration"
 echo "       Editing kettle.properties"
 #edit kettle.properties and move to .kettle dir
