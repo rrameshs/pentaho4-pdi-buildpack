@@ -33,6 +33,8 @@ create_db() {
 	
 	#create any call log dbs specified in kettle.properties
 	for num in `set | grep LOGGING_.*_DB_NAME | cut -d _ -f 2`; do
+		echo "Logging db ${num}"
+		
 		eval dbname=\$LOGGING_${num}_DB_NAME
 		eval dbhost=\$LOGGING_${num}_DB_HOST
 		eval dbport=\$LOGGING_${num}_DB_PORT
