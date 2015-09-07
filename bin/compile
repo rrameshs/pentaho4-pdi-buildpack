@@ -84,7 +84,7 @@ mkdir -p ${build_path}/.profile.d
 cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
 
 #edit pentaho env script to source .profile.d
-sed ${build_path}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
+#sed ${build_path}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
 
 echo "       Creating database setup script"
 #copy liquibase scripts from buildpack
