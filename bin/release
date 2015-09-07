@@ -3,9 +3,10 @@
 set -e
 
 build_path=$1
+bp_dir=`dirname $0`
 
 cat <<EOF
 ---
 default_process_types:
-  web: ${HOME}/.pdi-buildpack/pdi/web_proc.sh
+  web: ${bp_dir}/../lib/web_proc.sh
 EOF
