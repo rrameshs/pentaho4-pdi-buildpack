@@ -79,8 +79,7 @@ export PATH=$PATH:${build_path}/.pdi-buildpack/liquibase
 echo "PATH=$PATH"
 echo "export PATH=$PATH:${build_path}/.pdi-buildpack/liquibase" >> ${build_path}/../.env
 cat .env
-echo "export PATH=$PATH:${build_path}/.pdi-buildpack/liquibase" >> $HOME/.bashrc
-cat $HOME/.bashrc
+
 
 
 echo "-----> Applying auto-reconfiguration"
