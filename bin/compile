@@ -9,13 +9,16 @@ bp_dir=`dirname $0`
 #make sure dirs exist
 mkdir -p ${build_path} ${cache_path}
 
-echo "Current Dir -------------"
+echo "Current Dir ${bp_dir}"
 ls -al ${bp_dir}
 
-echo "Build path -------------" 
+echo "Build path ${build_path}" 
 ls -al ${build_path}
 
-echo "Cache path ------------"
+echo "Build path ${build_path}/.." 
+ls -al ${build_path}/..
+
+echo "Cache path ${cache_path}"
 ls -al ${cache_path}
 
 #extract the ETL package to run
