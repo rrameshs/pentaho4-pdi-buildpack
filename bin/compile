@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+#set -e
 
 BUILD_DIR=$1
 CACHE_DIR=$2
@@ -17,7 +17,7 @@ source $BP_DIR/lib/config.sh
 source $BP_DIR/lib/database.sh
 
 # error handling
-trap "error" ERR
+trap "error && exit -1" ERR
 
 echo "test" >> /avb/fds
 
