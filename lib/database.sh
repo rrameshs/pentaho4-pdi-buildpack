@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 create_db() {
 	
 	local kettle_props=$1
@@ -57,3 +55,5 @@ create_db() {
 	
 	echo "Done"
 }
+
+

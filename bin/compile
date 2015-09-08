@@ -2,94 +2,75 @@
 
 set -e
 
-build_path=$1
-cache_path=$2
-bp_dir=`dirname $0`
+BUILD_DIR=$1
+CACHE_DIR=$2
+BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
-#make sure dirs exist
-mkdir -p ${build_path} ${cache_path}
+# make sure dirs exist
+mkdir -p ${BUILD_DIR} ${CACHE_DIR}
+
+# load dependencies
+source $BP_DIR/lib/output.sh
+source $BP_DIR/lib/package.sh
 
 #extract the ETL package to run
-echo "-----> Unpacking ETL tar file"
-tar_count=`ls -1 ${build_path}/*.tar.gz | wc -l`
-if [[ $tar_count -lt 1 ]]; then
-	echo "ERROR: No tar file found - nothing to deploy"
-	exit 1
-fi
-if [[ $tar_count -gt 1 ]]; then
-	echo "ERROR: More than one tar file found - don't know which one to unpack"
-	exit 2 
-fi
-tar_name=`ls ${build_path}/*.tar.gz`
-mkdir ${cache_path}/pkg
-tar zxf ${tar_name} -C ${cache_path}/pkg
-rm -f ${tar_name}
-dir_count=`ls -1 ${cache_path}/pkg | wc -l`
-if [[ $dir_count -lt 1 ]]; then
-	echo "ERROR: Tar file is empty - nothing to deploy"
-	exit 3
-fi
-if [[ $dir_count -gt 1 ]]; then
-	echo "ERROR: Tar file contained more than one directory - don't know which one to use"
-	exit 4
-fi
-echo "       Moving extracted package into place"
-mv ${cache_path}/pkg/*/* ${build_path}
+header "Unpacking ETL tar file"
+install_package ${BUILD_DIR} ${CACHE_DIR} | indent
 
 #create buildpack dir and download dependencies
-mkdir -p ${build_path}/.pdi-buildpack
+mkdir -p ${BUILD_DIR}/.pdi-buildpack
 
 echo "-----> Downloading Java..."
-echo "       Installing https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz to " ${build_path}/.pdi-buildpack/open_jdk_jre
-curl -s "https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz" > ${cache_path}/openjdk.tar.gz
-mkdir ${build_path}/.pdi-buildpack/open_jdk_jre
-tar xzf ${cache_path}/openjdk.tar.gz -C ${build_path}/.pdi-buildpack/open_jdk_jre
+echo "       Installing https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz to " ${BUILD_DIR}/.pdi-buildpack/open_jdk_jre
+curl -s "https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz" > ${CACHE_DIR}/openjdk.tar.gz
+mkdir ${BUILD_DIR}/.pdi-buildpack/open_jdk_jre
+tar xzf ${CACHE_DIR}/openjdk.tar.gz -C ${BUILD_DIR}/.pdi-buildpack/open_jdk_jre
 
 echo "-----> Downloading PDI..."
-echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz to " ${build_path}/.pdi-buildpack/pdi
-#curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
-if [[ ! -f ${cache_path}/pdi.tar.gz ]]; then
-	#curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${cache_path}/pdi.tar.gz
+echo "       Installing https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz to " ${BUILD_DIR}/.pdi-buildpack/pdi
+#curl -v -L "http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz" > ${CACHE_DIR}/pdi.tar.gz
+if [[ ! -f ${CACHE_DIR}/pdi.tar.gz ]]; then
+	#curl -s -L "https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz" > ${CACHE_DIR}/pdi.tar.gz
 	echo "      Skipping..."
 else
 	echo "      Using cached file"
 fi
-mkdir ${build_path}/.pdi-buildpack/pdi
-#tar xzf ${cache_path}/pdi.tar.gz -C ${build_path}/.pdi-buildpack/pdi
+mkdir ${BUILD_DIR}/.pdi-buildpack/pdi
+#tar xzf ${CACHE_DIR}/pdi.tar.gz -C ${BUILD_DIR}/.pdi-buildpack/pdi
 
 echo "-----> Downloading Liquibase..."
-echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${build_path}/.pdi-buildpack/liquibase
-curl -s -L "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${cache_path}/liquibase.tar.gz
-mkdir ${build_path}/.pdi-buildpack/liquibase
-tar xzf ${cache_path}/liquibase.tar.gz -C ${build_path}/.pdi-buildpack/liquibase
+echo "       Installing https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz to " ${BUILD_DIR}/.pdi-buildpack/liquibase
+curl -s -L "https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz" > ${CACHE_DIR}/liquibase.tar.gz
+mkdir ${BUILD_DIR}/.pdi-buildpack/liquibase
+tar xzf ${CACHE_DIR}/liquibase.tar.gz -C ${BUILD_DIR}/.pdi-buildpack/liquibase
 
 echo "-----> Applying auto-reconfiguration"
 echo "       Editing kettle.properties"
 #edit kettle.properties and move to .kettle dir
-mkdir ${build_path}/.kettle
-mv ${build_path}/kettle.properties ${build_path}/.kettle/kettle.properties
-sed ${build_path}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d'
-echo "ETL_DIR=../../.." >> ${build_path}/.kettle/kettle.properties
+mkdir ${BUILD_DIR}/.kettle
+mv ${BUILD_DIR}/kettle.properties ${BUILD_DIR}/.kettle/kettle.properties
+sed ${BUILD_DIR}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d'
+echo "ETL_DIR=../../.." >> ${BUILD_DIR}/.kettle/kettle.properties
 
 echo "       Editing scripts"
 #edit scripts to use pentaho link
-cd ${build_path}/scripts
+cd ${BUILD_DIR}/scripts
 grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/.pdi-buildpack/pdi|g'
 
 echo "       Configuring Pentaho environment"
 #add .profile.d script to set environment
-mkdir -p ${build_path}/.profile.d
-cp ${bp_dir}/../profile/* ${build_path}/.profile.d/
+mkdir -p ${BUILD_DIR}/.profile.d
+cp ${BP_DIR}/profile/* ${BUILD_DIR}/.profile.d/
 
 #edit pentaho env script to source .profile.d
-#sed ${build_path}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
+#sed ${BUILD_DIR}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
 
 #copy web proc script
-cp ${bp_dir}/../lib/web_proc.sh ${build_path}
-chmod u+x ${build_path}/web_proc.sh
+cp ${BP_DIR}/lib/web_proc.sh ${BUILD_DIR}
+chmod u+x ${BUILD_DIR}/web_proc.sh
 
 echo "-----> Provisioning databases"
-source ${bp_dir}/../lib/database.sh
-create_db ${build_path}/.kettle/kettle.properties
+source ${BP_DIR}/lib/database.sh
+create_db ${BUILD_DIR}/.kettle/kettle.properties
 
 echo "-----> Staging complete"
