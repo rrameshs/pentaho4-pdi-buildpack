@@ -1,41 +1,36 @@
 #!/usr/bin/env bash
 
-#set -e
+set -e
 
 BUILD_DIR=$1
 CACHE_DIR=$2
 BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 # make sure dirs exist
-mkdir -p ${BUILD_DIR} ${CACHE_DIR}
+mkdir -p $BUILD_DIR $CACHE_DIR
 
 # load scripts
-source $BP_DIR/lib/output.sh
-source $BP_DIR/lib/package.sh
-source $BP_DIR/lib/dependencies.sh
-source $BP_DIR/lib/config.sh
-source $BP_DIR/lib/database.sh
-
-# error handling
-trap "error && exit -1" ERR
-
-echo "test" >> /avb/fds
+source ${BP_DIR}/lib/output.sh
+source ${BP_DIR}/lib/package.sh
+source ${BP_DIR}/lib/dependencies.sh
+source ${BP_DIR}/lib/config.sh
+source ${BP_DIR}/lib/database.sh
 
 # extract the ETL package to run
 header "Deploying ETL tar file"
-install_package ${BUILD_DIR} ${CACHE_DIR} | indent
+install_package $BUILD_DIR $CACHE_DIR | indent
 
 # install dependencies
 header "Installing dependencies"
-install_dependencies ${BUILD_DIR} ${CACHE_DIR} | indent
+install_dependencies $BUILD_DIR $CACHE_DIR | indent
 
 # reconfigure package
 header "Applying auto-reconfiguration"
-reconfigure_app ${BUILD_DIR} ${BP_DIR} | indent
+reconfigure_app $BUILD_DIR $BP_DIR | indent
 
 # set-up databases
 header "Configuring databases"
-configure_databases ${BUILD_DIR} | indent
+configure_databases $BUILD_DIR | indent
 
 # done
 header "Staging complete"

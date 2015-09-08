@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
 
-echo "DETECT"
+BUILD_DIR=$1
+
+if [[ -f ${BUILD_DIR}/kettle.properties ]]; then
+	echo "Pentaho PDI"
+	exit 0
+fi
+
+echo "no"
 exit 1
