@@ -16,7 +16,7 @@ install_package() {
 	
 	#extract the tar file into a temp dir
 	local tar_name=$(ls ${build_dir}/*.tar.gz)
-	local tmp_dir=${TMPDIR}/pentaho-pdi/pkg
+	local tmp_dir=${cache_dir}/tmp
 	mkdir -p ${tmp_dir}
 	tar zxf ${tar_name} -C ${tmp_dir}
 	rm -f ${tar_name}
@@ -33,6 +33,7 @@ install_package() {
 	fi
 	
 	echo "Moving extracted package into place"
-	mv ${tmp_dir}/*/* ${build_dir}	
+	mv ${tmp_dir}/*/* ${build_dir}
+	rm -rf ${tmp_dir}
 }
 
