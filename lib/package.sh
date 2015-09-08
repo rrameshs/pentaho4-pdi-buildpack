@@ -1,7 +1,7 @@
 install_package() {
 	
-	local build_dir = $1
-	local cache_dir = $2
+	local build_dir=$1
+	local cache_dir=$2
 	
 	#check there is exactly one tar file to install
 	local tar_count=$(ls -1 ${build_dir}/*.tar.gz | wc -l)
