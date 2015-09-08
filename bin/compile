@@ -19,9 +19,11 @@ source $BP_DIR/lib/database.sh
 # error handling
 trap "error" ERR
 
+echo "test" >> /avb/fds
+
 # extract the ETL package to run
 header "Deploying ETL tar file"
-install_packag ${BUILD_DIR} ${CACHE_DIR} | indent
+install_package ${BUILD_DIR} ${CACHE_DIR} | indent
 
 # install dependencies
 header "Installing dependencies"
