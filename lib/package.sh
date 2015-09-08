@@ -3,7 +3,7 @@ install_package() {
 	local build_dir=$1
 	local cache_dir=$2
 	
-	#check there is exactly one tar file to install
+	# check there is exactly one tar file to install
 	local tar_count=$(ls -1 ${build_dir}/*.tar.gz | wc -l)
 	if [[ ${tar_count} -lt 1 ]]; then
 		echo "ERROR: No tar file found - nothing to deploy"
@@ -14,14 +14,14 @@ install_package() {
 		exit 2 
 	fi
 	
-	#extract the tar file into a temp dir
+	# extract the tar file into a temp dir
 	local tar_name=$(ls ${build_dir}/*.tar.gz)
 	local tmp_dir=${cache_dir}/tmp
 	mkdir -p ${tmp_dir}
 	tar zxf ${tar_name} -C ${tmp_dir}
 	rm -f ${tar_name}
 	
-	#check there is exactly one top-level dir
+	# check there is exactly one top-level dir
 	local dir_count=$(ls -1 ${tmp_dir} | wc -l)
 	if [[ ${dir_count} -lt 1 ]]; then
 		echo "ERROR: Tar file is empty - nothing to deploy"
@@ -32,6 +32,7 @@ install_package() {
 		exit 4
 	fi
 	
+	# move to home dir
 	echo "Moving extracted package into place"
 	mv ${tmp_dir}/*/* ${build_dir}
 	rm -rf ${tmp_dir}
