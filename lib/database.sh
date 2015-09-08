@@ -1,6 +1,6 @@
 configure_databases() {
 	
-	local kettle_props=$1
+	local kettle_props=${1}/.kettle/kettle.properties
 	
 	#read kettle.properties
 	source $kettle_props

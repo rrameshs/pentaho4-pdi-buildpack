@@ -16,9 +16,12 @@ source $BP_DIR/lib/dependencies.sh
 source $BP_DIR/lib/config.sh
 source $BP_DIR/lib/database.sh
 
+# error handling
+trap "error" ERR
+
 # extract the ETL package to run
-header "Unpacking ETL tar file"
-install_package ${BUILD_DIR} ${CACHE_DIR} | indent
+header "Deploying ETL tar file"
+install_packag ${BUILD_DIR} ${CACHE_DIR} | indent
 
 # install dependencies
 header "Installing dependencies"
@@ -30,6 +33,7 @@ reconfigure_app ${BUILD_DIR} ${BP_DIR} | indent
 
 # set-up databases
 header "Configuring databases"
-create_db ${BUILD_DIR}/.kettle/kettle.properties | indent
+configure_databases ${BUILD_DIR} | indent
 
+# done
 header "Staging complete"
