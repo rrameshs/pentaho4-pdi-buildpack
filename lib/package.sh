@@ -13,9 +13,10 @@ install_package() {
 		echo "ERROR: More than one tar file found - don't know which one to unpack"
 		exit 2 
 	fi
+	local tar_name=$(ls ${build_dir}/*.tar.gz)
 	
 	# extract the tar file into a temp dir
-	local tar_name=$(ls ${build_dir}/*.tar.gz)
+	echo "Unpacking ${tar_name}"	
 	local tmp_dir=${cache_dir}/tmp
 	mkdir -p ${tmp_dir}
 	tar zxf ${tar_name} -C ${tmp_dir}
