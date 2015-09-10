@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-# A dummy process that just sleeps forever, occasionally waking up
-# This lets the health manager know that the app is ok and doesn't need restarting
+# A dummy process that just sleeps forever to prevent the health manager from restarting the container
 while :
 do 
 	echo "Web process sleeping..."
-	sleep 5m
-	echo "Web process woken up"
+	sleep 365d
+	echo "Web process woke up on $(date)"
 done
