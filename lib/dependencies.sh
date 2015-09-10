@@ -20,6 +20,8 @@ install_dependencies() {
 	#curl -s -L  ${pdi_url} > ${cache_dir}/pdi-ce-4.4.0-stable.tar.gz
 	mkdir ${build_dir}/.pdi-buildpack/pdi
 	tar xzf ${cache_dir}/pdi-ce-4.4.0-stable.tar.gz -C ${build_dir}/.pdi-buildpack/pdi	
+	
+	mkdir ${build_dir}/.pdi-buildpack/pdi/data-integration
 
 	# install Liquibase
 	local liquibase_url="https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz"
