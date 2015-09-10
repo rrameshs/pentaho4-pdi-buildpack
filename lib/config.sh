@@ -11,12 +11,17 @@ reconfigure_app() {
 	# delete any ETL_DIR setting and create a new entry pointing to the home dir
 	echo "Setting ETL_DIR"
 	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d'
-	echo "ETL_DIR=../../.." >> ${build_dir}/.kettle/kettle.properties
+	echo "ETL_DIR=/home/stackato/app" >> ${build_dir}/.kettle/kettle.properties
+	
+	# delete any PDI_DIR setting and create a new entry pointing to the home dir
+	echo "Setting PDI_DIR"
+	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/PDI_DIR/d'
+	echo "PDI_DIR=/home/stackato/app/.pdi-buildpack/pdi" >> ${build_dir}/.kettle/kettle.properties	
 		
 	# change location of pentaho to use installed PDI
-	echo "Editing scripts to set PDI dir"
-	cd ${build_dir}/scripts
-	grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/.pdi-buildpack/pdi|g'
+	#echo "Editing scripts to set PDI dir"
+	#cd ${build_dir}/scripts
+	#grep -RlZ /opt/pentaho * | xargs -0l sed -i.bak -e 's|/opt/pentaho|~/.pdi-buildpack/pdi|g'
 	
 	# add .profile.d script to set environment
 	echo "Setting environment"
