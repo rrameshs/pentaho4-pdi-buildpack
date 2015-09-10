@@ -22,7 +22,7 @@ install_package $BUILD_DIR $CACHE_DIR | indent
 
 # install dependencies
 header "Installing dependencies"
-install_dependencies $BUILD_DIR $CACHE_DIR | indent
+install_dependencies $BUILD_DIR $CACHE_DIR $BP_DIR | indent
 
 # reconfigure package
 header "Applying auto-reconfiguration"
