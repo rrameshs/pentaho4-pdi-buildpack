@@ -17,11 +17,9 @@ install_dependencies() {
 	# http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz
 	local pdi_url="https://s3-eu-west-1.amazonaws.com/voxgenbi/pdi-ce-4.4.0-stable.tar.gz"
 	echo "Installing ${pdi_url} to ${build_dir}/.pdi-buildpack/pdi"	
-	#curl -s -L  ${pdi_url} > ${cache_dir}/pdi-ce-4.4.0-stable.tar.gz
+	curl -s -L  ${pdi_url} > ${cache_dir}/pdi-ce-4.4.0-stable.tar.gz
 	mkdir ${build_dir}/.pdi-buildpack/pdi
 	tar xzf ${cache_dir}/pdi-ce-4.4.0-stable.tar.gz -C ${build_dir}/.pdi-buildpack/pdi	
-	
-	mkdir ${build_dir}/.pdi-buildpack/pdi/data-integration
 
 	# install Liquibase
 	local liquibase_url="https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz"
