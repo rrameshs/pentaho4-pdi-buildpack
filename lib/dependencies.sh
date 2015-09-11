@@ -35,8 +35,10 @@ install_dependency() {
 	# get the package, either from buildpack or url
 	local pkg_file=${pkg_url##*/}
 	if [[ -f ${bp_dir}/dependencies/${pkg_file} ]]; then
+		echo "Using cached ${pkg_file}" | indent
 		cp ${bp_dir}/dependencies/${pkg_file} ${cache_dir}/${pkg_file}
 	else
+		echo "Downloading ..." | indent
 		curl -s -L ${pkg_url} > ${cache_dir}/${pkg_file}
 	fi				
 	
