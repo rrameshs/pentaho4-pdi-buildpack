@@ -9,24 +9,21 @@ install_dependencies() {
 	
 	# install Java
 	local jdk_dir=${build_dir}/.pdi-buildpack/open_jdk_jre
-	mkdir -p ${jdk_dir}
-	install_package $bp_dir $cache_dir $jdk_url $jdk_dir
+	install_dependency $bp_dir $cache_dir $jdk_url $jdk_dir
 			
 	# install Pentaho PDI	
 	local pdi_dir=${build_dir}/.pdi-buildpack/pdi"
-	mkdir -p ${pdi_dir}
-	install_package $bp_dir $cache_dir $pdi_url $pdi_dir	
+	install_dependency $bp_dir $cache_dir $pdi_url $pdi_dir	
 
 	# install Liquibase
 	local liquibase_dir=${build_dir}/.pdi-buildpack/liquibase"
-	mkdir -p ${liquibase_dir}
-	install_package $bp_dir $cache_dir $liquibase_url $liquibase_dir
+	install_dependency $bp_dir $cache_dir $liquibase_url $liquibase_dir
 	
 	# copy postgres jdbc driver from pdi to liquibase
 	cp ${pdi_dir}/data-integration/libext/JDBC/postgresql-*.jar ${liquibase_dir}/lib
 }
 
-install_package() {
+install_dependency() {
 
 	local bp_dir=$1
 	local cache_dir=$2
@@ -44,5 +41,6 @@ install_package() {
 	fi				
 	
 	# unpack it into the target dir
+	mkdir -p ${pkg_dir}
 	tar xzf ${cache_dir}/${pkg_file} -C ${pkg_dir}
 }
