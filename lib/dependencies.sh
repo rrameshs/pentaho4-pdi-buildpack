@@ -8,15 +8,15 @@ install_dependencies() {
 	source ${bp_dir}/config/dependencies.properties
 	
 	# install Java
-	local jdk_dir=${build_dir}/.pdi-buildpack/open_jdk_jre
+	local jdk_dir="${build_dir}/.pdi-buildpack/open_jdk_jre"
 	install_dependency $bp_dir $cache_dir $jdk_url $jdk_dir
 			
 	# install Pentaho PDI	
-	local pdi_dir=${build_dir}/.pdi-buildpack/pdi"
+	local pdi_dir="${build_dir}/.pdi-buildpack/pdi"
 	install_dependency $bp_dir $cache_dir $pdi_url $pdi_dir	
 
 	# install Liquibase
-	local liquibase_dir=${build_dir}/.pdi-buildpack/liquibase"
+	local liquibase_dir="${build_dir}/.pdi-buildpack/liquibase"
 	install_dependency $bp_dir $cache_dir $liquibase_url $liquibase_dir
 	
 	# copy postgres jdbc driver from pdi to liquibase
