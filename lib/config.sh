@@ -26,7 +26,7 @@ reconfigure_app() {
 	# add memory spec to profile if specified in kettle.properties
 	local pdi_mem=$(grep "PDI_MAX_MEMORY" ${build_dir}/.kettle/kettle.properties | cut -d = -f 2)
 	if [[ ! -z "$pdi_mem" ]]; then
-		local pdi_java_opts="PENTAHO_DI_JAVA_OPTS=-Xmx${pdi_mem}"
+		local pdi_java_opts="PENTAHO_DI_JAVA_OPTIONS=-Xmx${pdi_mem}"
 		echo "Setting ${pdi_java_opts}" | indent
 		echo "export ${pdi_java_opts}" >> ${build_dir}/.profile.d/setenv.sh
 	fi
