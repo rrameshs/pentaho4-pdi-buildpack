@@ -37,7 +37,7 @@ install_dependency() {
 	if [[ -f ${bp_dir}/dependencies/${pkg_file} ]]; then
 		cp ${bp_dir}/dependencies/${pkg_file} ${cache_dir}/${pkg_file}
 	else
-		curl -L --progress-bar ${pkg_url} > ${cache_dir}/${pkg_file}
+		curl -s -L ${pkg_url} > ${cache_dir}/${pkg_file}
 	fi				
 	
 	# unpack it into the target dir
