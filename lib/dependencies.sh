@@ -31,18 +31,16 @@ install_dependency() {
 	local pkg_dir=$4
 	
 	echo "Installing ${pkg_url} to ${pkg_dir}"
+	mkdir -p ${pkg_dir}
 	
 	# get the package, either from buildpack or url
 	local pkg_file=${pkg_url##*/}
 	if [[ -f ${bp_dir}/dependencies/${pkg_file} ]]; then
 		echo "Using cached ${pkg_file}" | indent
-		cp ${bp_dir}/dependencies/${pkg_file} ${cache_dir}/${pkg_file}
+		tar xzf ${bp_dir}/dependencies/${pkg_file} -C ${pkg_dir}
 	else
 		echo "Downloading ..." | indent
 		curl -s -L ${pkg_url} > ${cache_dir}/${pkg_file}
+		tar xzf ${cache_dir}/${pkg_file} -C ${pkg_dir}
 	fi				
-	
-	# unpack it into the target dir
-	mkdir -p ${pkg_dir}
-	tar xzf ${cache_dir}/${pkg_file} -C ${pkg_dir}
 }
