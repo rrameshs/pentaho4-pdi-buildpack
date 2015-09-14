@@ -10,13 +10,11 @@ reconfigure_app() {
 	
 	# delete any ETL_DIR setting and create a new entry pointing to the home dir
 	echo "Setting ETL_DIR"
-	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d'
-	echo "ETL_DIR=/home/stackato/app" >> ${build_dir}/.kettle/kettle.properties
+	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d' -e '$aETL_DIR=/home/stackato/app'
 	
 	# delete any PDI_DIR setting and create a new entry pointing to the home dir
 	echo "Setting PDI_DIR"
-	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/PDI_DIR/d'
-	echo "PDI_DIR=/home/stackato/app/.pdi-buildpack/pdi" >> ${build_dir}/.kettle/kettle.properties	
+	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/PDI_DIR/d' -e '$aPDI_DIR=/home/stackato/app/.pdi-buildpack/pdi'
 	
 	# add .profile.d script to set environment
 	echo "Setting environment"
