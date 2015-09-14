@@ -104,6 +104,8 @@ stackato:
     - touch $HOME/log/loadIncremental.log
 ```
 
+Note that if a job runs regularly then its log file will become very large and possibly exceed the disk space allocated to the docker container. You should consider implementing log rotation using `logrotate` scheduled via `cron` as described in [Application Logging](http://docs.stackato.com/user/deploy/app-logs.html).
+
 ## Database Setup and Helper Jobs
 As noted above, the buildpack ensures that any required databases exist, but it is the responsibility of the application to create the required relations, indexes etc. This can be done by including a schema creation script and executing it via a post-staging hook. The staged container will include the `psql` utility which can be used to run SQL scripts, and also contains `liquibase` in order to run Liquibase changesets (which is the preferred approach). 
 
