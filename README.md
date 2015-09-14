@@ -1,0 +1,172 @@
+# Pentaho PDI Buildpack
+
+The pentaho-pdi-buildpack is a Cloud Foundry buildpack for running Pentaho Data Integration (PDI) jobs. It is intended to allow projects based on the standard PDI templates ([pentaho3-pdi](https://github.com/voxgen/pentaho3-pdi) and [pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi)) to be deployed to a Stackato PaaS, but it makes minimal assumptions about the actual package to be deployed.
+
+## Usage
+If this buildpack has been uploaded to Stackato then you only need to include a `kettle.properties` file in the directory you are pushing from for it to be used. Alternatively, there are two ways to manually specify this buildpack - either specify the URI of this GitHub repository as a parameter when pushing an application to Cloud Foundry:
+
+```bash
+stackato push --buildpack https://github.com/voxgen/pentaho-pdi-buildpack.git
+```
+
+or else specify it within the `manifest.yml` in the directory that you are pushing from:
+
+```
+applications:
+- name: my-app
+  buildpack: https://github.com/voxgen/pentaho-pdi-buildpack.git
+  ...
+```
+
+## Requirements for the package to deploy
+
+In addition to the usual `manifest.yml` file, the directory that you are pushing from must contain a `kettle.properties` file containing the usual settings as used in the template PDI projects along with a `.tar.gz` package containing the ETL jobs, transformations, scripts etc.
+
+The presence of `kettle.properties` is used to determine whether the package can be deployed by this buildpack, but there must also be exactly one `.tar.gz` package in the directory or the push will fail. Furthermore the tar package must itself contain exactly one top-level directory, under which all the ETL files are stored. This is the default packaging created by the Maven build in the template PDI projects.
+
+As part of the staging of the application the following variables will be set in `kettle.properties` (if they are already specified then the existing setting will be overwritten):
+
+```
+PDI_DIR - location of the Pentaho PDI installation
+ETL_DIR - location of the Kettle jobs
+```
+
+Any scripts in the app to be deployed should make use of these variables, rather than using hardcoded paths, so that they can run in the staged environment. Scripts can do this by sourcing the `kettle.properties` file, e.g.
+
+```
+source ~/.kettle/kettle.properties
+
+cd $PDI_DIR/data-integration/
+./kitchen.sh -file $ETL_DIR/jobs/Load_Helper_Files.kjb
+```
+
+Note that the scripts in the latest revisions of the Pentaho 4 PDI template ([pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi)) already take this approach.
+
+## Staging process
+The buildpack extracts and deploys the package provided in the push directory and then performs the following steps:
+
+### Install dependencies
+The following dependencies are installed:
+
+- Java OpenJDK
+- Pentaho Data Integration (PDI)
+- Liquibase
+
+The URLs to retrieve these dependencies from are taken from the `config/dependencies.properties` file in the buildpack. This file can be changed to specify different versions of dependencies if required.
+
+A Postgres JDBC driver is also added to the Liquibase installation so that it does not need to be specified when executing liquibase commands.
+
+### App re-configuration
+The extracted package is re-configured in order to run in the staged container. This involves setting variables such as `PDI_DIR` and `ETL_DIR` in `kettle.properties` (as described above), adding the installed Java and Liquibase executables to the `PATH` and exposing the following additional environment variables:
+- `KETTLE_HOME`: location of the `kettle.properties` file
+- `LIQUIBASE_HOME`: location of the `liquibase` exexcutable
+
+### Database configuration
+The buildpack checks the `kettle.properties` file and if the database specified via the `REPORTING_DB_...` variables does not exist then it creates it. It then checks that the `dw` and `mart` schemas exist, and creates them if they don't.
+
+The buildpack also checks for `LOGGING_X_DB_...` variables (X=1,2,..) which are used to specify one or more call logging databases to use as input. For each specified database, the buildpack checks whether the database exists, and creates it if it doesn't.
+
+Note that the buildpack only ensures that the required databases exist and have the correct schemas - it does not run any DDL to create tables, indexes etc, or helper jobs to load data. This is left to the deployed application to do via staging hooks, or as part of its execution. The reason for this is to allow each application to deploy its own schema using whatever process is most appropriate (e.g. SQL scripts, Liquibase changelogs etc). 
+
+## Manifest settings
+The `manifest.yml` required to push a PDI project differs slightly from that for a standard web application. These differences are described below.
+
+### No URL
+
+Because a PDI project does not contain a web application, the running app should not be assigned a URL (otherwise Stackato will wait for a response from that URL to test whether the app is running). To do this specify `url: []` in the manifest file.
+
+### Cron
+
+The PDI project will run jobs scheduled by cron. You can use the Stackato 'cron' extension in the manifest file to set-up the required schedules, e.g. to run the `scripts/loadIncremental.sh` script every minute:
+
+```
+stackato:
+  cron:
+    - "*/1 * * * * $HOME/scripts/loadIncremental.sh >> $HOME/log/loadIncremental.log"
+```
+
+### Logging
+
+Scripts run with cron normally redirect their output to a log file (as shown above). In order to include that log file in the log stream for your app you can set the `STACKATO_LOG_FILES` environment variable (see [Application Logs](http://docs.stackato.com/user/deploy/app-logs.html) for more details):
+
+```
+stackato:
+  env:
+    STACKATO_LOG_FILES: incremental=app/log/loadIncremental.log:$STACKATO_LOG_FILES
+```
+
+You will also need to ensure the log file exists when the application starts running. You can do this by using a post-staging hook as shown below:
+
+```
+stackato:
+  hooks:
+    post-staging:
+    - touch $HOME/log/loadIncremental.log
+```
+
+## Database setup and helper jobs
+As noted above, the buildpack ensures that any required databases exist, but it is the responsibility of the application to create the required relations, indexes etc. This can be done by including a schema creation script and executing it via a post-staging hook. The staged container will include the `psql` utility which can be used to run SQL scripts, and also contains `liquibase` in order to run Liquibase changesets (which is the preferred approach). 
+
+For example, the following runs the `report_db_schema.sh` script included in [pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi) in order to setup the report database once the app has been staged:
+
+```
+stackato:
+  hooks:
+    post-staging:
+    - $HOME/db/report_db_schema.sh
+```
+
+It may also be necessary to run some one-off manual ETL jobs before starting the scheduled jobs (e.g. to fill helper dimensions). These can be executed via `pre-running` hooks, as shown below:
+
+```
+stackato:
+  hooks:
+    pre-running:
+    - $HOME/scripts/loadHelpers.sh
+```
+
+Note that any ETL jobs or transformations that rely on the `ETL_DIR` variable in `kettle.properties` can *not* be run in a post-staging hook - the reason for this is that the `ETL_DIR` variable will be set to the required location for the running app, but the job and transformation files will actually be in a different (temporary) location whilst staging. ETL jobs that rely on this variable can therefore only be run once staging is complete and the app is about to enter a running state. 
+
+One final thing to note is that any jobs that are going to be run automatically via hooks should be able to be run more than once without causing any damage. Scripts run via `post-staging` will be executed whenever the app is deleted and re-pushed, and those run via `pre-running` will execute whenever the app is stopped and started. If a job really cannot be run more than once (and cannot be changed to do so) then it will need to be done manually by SSHing into the deployed app and running the required script before the scheduled jobs start.
+
+## Memory settings
+By default each job execution (via kitchen.sh) will be assigned a max heap size of 512MB. This can be changed by setting the `PENTAHO_DI_JAVA_OPTIONS` environment variable as below:
+
+```
+stackato:
+  env:
+    PENTAHO_DI_JAVA_OPTIONS: -Xmx768m
+```
+
+It is important to check whether more than one job may be executing at the same time and ensure that the overall memory assigned to the container in the `manifest.yml` is large enough to accommodate this. E.g. if there may be 2 jobs executing at once and each has the default 512MB assigned then the container needs more than 1GB to allow both jobs to run plus any other processes that are running in the container.
+
+It should also be possible to set the above environment variable on a per-job basis by including it as part of the cron command for a particular job.
+
+## Example manifest.yml
+The following is an example of a manifest to deploy a PDI project, including setting up the database, loading helper tables and configuring the crontab:
+
+```
+applications:
+- name: pdi-dpdng
+  memory: 768M
+  disk: 1G
+  url: []
+  stackato:
+    hooks:
+      post-staging:
+      - $HOME/db/report_db_schema.sh
+      - touch $HOME/log/loadIncremental.log 
+      pre-running:
+      - $HOME/scripts/loadHelpers.sh
+    env:
+      STACKATO_LOG_FILES: incremental=app/log/loadIncremental.log:$STACKATO_LOG_FILES
+    cron:
+      - "*/1 * * * * $HOME/scripts/loadIncremental.sh >> $HOME/log/loadIncremental.log"   
+```
+
+- No URL is assigned to the running app 
+- The post-staging hooks run a script to create the report database and create the log file for the incremental job
+- The pre-running hook runs a job to load helper dimensions immediately before the app starts
+- The log file for the incremental job is added to the app log stream
+- The execution of the incremental job is scheduled via cron
+
