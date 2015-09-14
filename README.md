@@ -18,7 +18,7 @@ applications:
   ...
 ```
 
-## Requirements for the package to deploy
+## Requirements for a Deployable App
 
 In addition to the usual `manifest.yml` file, the directory that you are pushing from must contain a `kettle.properties` file containing the usual settings as used in the template PDI projects along with a `.tar.gz` package containing the ETL jobs, transformations, scripts etc.
 
@@ -42,10 +42,10 @@ cd $PDI_DIR/data-integration/
 
 Note that the scripts in the latest revisions of the Pentaho 4 PDI template ([pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi)) already take this approach.
 
-## Staging process
+## Staging Process
 The buildpack extracts and deploys the package provided in the push directory and then performs the following steps:
 
-### Install dependencies
+### Install Dependencies
 The following dependencies are installed:
 
 - Java OpenJDK
@@ -56,19 +56,19 @@ The URLs to retrieve these dependencies from are taken from the `config/dependen
 
 A Postgres JDBC driver is also added to the Liquibase installation so that it does not need to be specified when executing liquibase commands.
 
-### App re-configuration
+### App Re-Configuration
 The extracted package is re-configured in order to run in the staged container. This involves setting variables such as `PDI_DIR` and `ETL_DIR` in `kettle.properties` (as described above), adding the installed Java and Liquibase executables to the `PATH` and exposing the following additional environment variables:
 - `KETTLE_HOME`: location of the `kettle.properties` file
 - `LIQUIBASE_HOME`: location of the `liquibase` exexcutable
 
-### Database configuration
+### Database Configuration
 The buildpack checks the `kettle.properties` file and if the database specified via the `REPORTING_DB_...` variables does not exist then it creates it. It then checks that the `dw` and `mart` schemas exist, and creates them if they don't.
 
 The buildpack also checks for `LOGGING_X_DB_...` variables (X=1,2,..) which are used to specify one or more call logging databases to use as input. For each specified database, the buildpack checks whether the database exists, and creates it if it doesn't.
 
 Note that the buildpack only ensures that the required databases exist and have the correct schemas - it does not run any DDL to create tables, indexes etc, or helper jobs to load data. This is left to the deployed application to do via staging hooks, or as part of its execution. The reason for this is to allow each application to deploy its own schema using whatever process is most appropriate (e.g. SQL scripts, Liquibase changelogs etc). 
 
-## Manifest settings
+## Manifest Settings
 The `manifest.yml` required to push a PDI project differs slightly from that for a standard web application. These differences are described below.
 
 ### No URL
@@ -104,7 +104,7 @@ stackato:
     - touch $HOME/log/loadIncremental.log
 ```
 
-## Database setup and helper jobs
+## Database Setup and Helper Jobs
 As noted above, the buildpack ensures that any required databases exist, but it is the responsibility of the application to create the required relations, indexes etc. This can be done by including a schema creation script and executing it via a post-staging hook. The staged container will include the `psql` utility which can be used to run SQL scripts, and also contains `liquibase` in order to run Liquibase changesets (which is the preferred approach). 
 
 For example, the following runs the `report_db_schema.sh` script included in [pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi) in order to setup the report database once the app has been staged:
@@ -129,7 +129,7 @@ Note that any ETL jobs or transformations that rely on the `ETL_DIR` variable in
 
 One final thing to note is that any jobs that are going to be run automatically via hooks should be able to be run more than once without causing any damage. Scripts run via `post-staging` will be executed whenever the app is deleted and re-pushed, and those run via `pre-running` will execute whenever the app is stopped and started. If a job really cannot be run more than once (and cannot be changed to do so) then it will need to be done manually by SSHing into the deployed app and running the required script before the scheduled jobs start.
 
-## Memory settings
+## Memory Settings
 By default each job execution (via kitchen.sh) will be assigned a max heap size of 512MB. This can be changed by setting the `PENTAHO_DI_JAVA_OPTIONS` environment variable as below:
 
 ```
@@ -142,7 +142,7 @@ It is important to check whether more than one job may be executing at the same 
 
 It should also be possible to set the above environment variable on a per-job basis by including it as part of the cron command for a particular job.
 
-## Example manifest.yml
+## Example Manifest File
 The following is an example of a manifest to deploy a PDI project, including setting up the database, loading helper tables and configuring the crontab:
 
 ```
@@ -170,3 +170,64 @@ applications:
 - The log file for the incremental job is added to the app log stream
 - The execution of the incremental job is scheduled via cron
 
+## Building Packages
+The buildpack can be packaged up so that it can be uploaded to Stackato using the `stackato create-buildpack` and `stackato update-buildpack` commands. In order to create a package, clone the buildpack then run the `bin/package` script - the resulting zip file will be created in the `build` directory of the buildpack:
+
+```
+$ bin/package
+Staging buildpack
+Creating zip file
+  adding: bin/ (stored 0%)
+  adding: bin/package (deflated 55%)
+  adding: bin/detect (deflated 11%)
+  adding: bin/compile (deflated 56%)
+  adding: bin/release (deflated 6%)
+  adding: config/ (stored 0%)
+  adding: config/dependencies.properties (deflated 40%)
+  adding: lib/ (stored 0%)
+  adding: lib/config.sh (deflated 64%)
+  adding: lib/web_proc.sh (deflated 30%)
+  adding: lib/output.sh (deflated 35%)
+  adding: lib/database.sh (deflated 71%)
+  adding: lib/dependencies.sh (deflated 61%)
+  adding: lib/package.sh (deflated 59%)
+  adding: profile/ (stored 0%)
+  adding: profile/setenv.sh (deflated 40%)
+done
+```
+
+By default, this will create an online package that will download dependencies via the Internet. In the case of PDI, this download can take some time which means that the deployment of the app can be quite slow. To avoid this, you can include the required dependencies within the deployed buildpack by adding the `--cached` argument to the package command. The zip file created will contain all the required artefacts and will run without needing access to the Internet:
+
+```
+$ bin/package --cached
+Staging buildpack
+Packaging dependencies with the buildpack
+Downloading https://download.run.pivotal.io/openjdk/precise/x86_64/openjdk-1.8.0_60.tar.gz
+######################################################################## 100.0%
+Downloading http://downloads.sourceforge.net/project/pentaho/Data%20Integration/4.4.0-stable/pdi-ce-4.4.0-stable.tar.gz
+######################################################################## 100.0%
+Downloading https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.1/liquibase-3.4.1-bin.tar.gz
+######################################################################## 100.0%
+Creating zip file
+  adding: bin/ (stored 0%)
+  adding: bin/package (deflated 55%)
+  adding: bin/detect (deflated 11%)
+  adding: bin/compile (deflated 56%)
+  adding: bin/release (deflated 6%)
+  adding: dependencies/ (stored 0%)
+  adding: dependencies/liquibase-3.4.1-bin.tar.gz (deflated 1%)
+  adding: dependencies/openjdk-1.8.0_60.tar.gz (deflated 1%)
+  adding: dependencies/pdi-ce-4.4.0-stable.tar.gz (deflated 0%)
+  adding: config/ (stored 0%)
+  adding: config/dependencies.properties (deflated 40%)
+  adding: lib/ (stored 0%)
+  adding: lib/config.sh (deflated 64%)
+  adding: lib/web_proc.sh (deflated 30%)
+  adding: lib/output.sh (deflated 35%)
+  adding: lib/database.sh (deflated 71%)
+  adding: lib/dependencies.sh (deflated 61%)
+  adding: lib/package.sh (deflated 59%)
+  adding: profile/ (stored 0%)
+  adding: profile/setenv.sh (deflated 40%)
+done
+```
