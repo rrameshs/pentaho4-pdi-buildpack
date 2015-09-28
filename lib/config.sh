@@ -8,6 +8,12 @@ reconfigure_app() {
 	mkdir ${build_dir}/.kettle
 	mv ${build_dir}/kettle.properties ${build_dir}/.kettle/kettle.properties
 	
+	# move helper file to config dir
+	if [[ -f ${build_dir}/hlpr_call_entry_points_friendly_names.csv ]]; then
+		echo "Moving hlpr_call_entry_points_friendly_names.csv"
+		mv -f ${build_dir}/hlpr_call_entry_points_friendly_names.csv ${build_dir}/config/hlpr_call_entry_points_friendly_names.csv
+	fi
+	
 	# delete any ETL_DIR setting and create a new entry pointing to the home dir
 	echo "Setting ETL_DIR"
 	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/ETL_DIR/d' -e '$aETL_DIR=/home/stackato/app'
