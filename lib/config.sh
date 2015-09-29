@@ -29,7 +29,7 @@ reconfigure_app() {
 	
 	#edit pentaho env script to source .profile.d
 	echo "Updating set-pentaho-env script"
-	sed ${build_dir}/.pdi-buildpack/pdi/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
+	sed ${build_dir}/.pdi-buildpack/pentaho/data-integration/set-pentaho-env.sh -i.bak -e '/setPentahoEnv/i . ~/.profile.d/setenv.sh'
 	
 	# copy web proc script
 	cp ${bp_dir}/lib/web_proc.sh ${build_dir}
