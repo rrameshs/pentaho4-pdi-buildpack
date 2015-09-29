@@ -20,7 +20,7 @@ reconfigure_app() {
 	
 	# delete any PDI_DIR setting and create a new entry pointing to the home dir
 	echo "Setting PDI_DIR"
-	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/PDI_DIR/d' -e '$aPDI_DIR=/home/stackato/app/.pdi-buildpack/pdi'
+	sed ${build_dir}/.kettle/kettle.properties -i.bak -e '/PDI_DIR/d' -e '$aPDI_DIR=/home/stackato/app/.pdi-buildpack/pentaho'
 	
 	# add .profile.d script to set environment
 	echo "Setting environment"

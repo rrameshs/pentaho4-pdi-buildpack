@@ -12,7 +12,7 @@ install_dependencies() {
 	install_dependency $bp_dir $cache_dir $jdk_url $jdk_dir
 			
 	# install Pentaho PDI	
-	local pdi_dir="${build_dir}/.pdi-buildpack/pdi"
+	local pdi_dir="${build_dir}/.pdi-buildpack/pentaho"
 	install_dependency $bp_dir $cache_dir $pdi_url $pdi_dir	
 
 	# install Liquibase
