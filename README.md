@@ -20,11 +20,15 @@ applications:
 
 ## Requirements for a Deployable App
 
-In addition to the usual `manifest.yml` file, the directory that you are pushing from must contain a `kettle.properties` file containing the usual settings as used in the template PDI projects along with a `.tar.gz` package containing the ETL jobs, transformations, scripts etc.
+In addition to the usual `manifest.yml` file, the directory that you are pushing from must contain a `kettle.properties` file containing the usual settings as used in the template PDI projects along with a `.tar.gz` package containing the ETL jobs, transformations, scripts etc. In addition, it can include a `hlpr_call_entry_points_friendly_names.csv` file to specify the configured DNIS numbers.
 
-The presence of `kettle.properties` is used to determine whether the package can be deployed by this buildpack, but there must also be exactly one `.tar.gz` package in the directory or the push will fail. Furthermore the tar package must itself contain exactly one top-level directory, under which all the ETL files are stored. This is the default packaging created by the Maven build in the template PDI projects.
+### Tar file
 
-As part of the staging of the application the following variables will be set in `kettle.properties` (if they are already specified then the existing setting will be overwritten):
+There must also be exactly one `.tar.gz` package in the directory or the push will fail. Furthermore the tar package must itself contain exactly one top-level directory, under which all the ETL files are stored. This is the default packaging created by the Maven build in the template PDI projects.
+
+### kettle.properties
+
+The presence of `kettle.properties` is used to determine whether the package can be deployed by this buildpack. As part of the staging of the application the following variables will be set in `kettle.properties` (if they are already specified then the existing setting will be overwritten):
 
 ```
 PDI_DIR - location of the Pentaho PDI installation
@@ -41,6 +45,12 @@ cd $PDI_DIR/data-integration/
 ```
 
 Note that the scripts in the latest revisions of the Pentaho 4 PDI template ([pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi)) already take this approach.
+
+### hlpr_call_entry_points_friendly_names.csv
+
+This file contains a list of the DNIS numbers used as entry points to the IVR. Since this typically needs to be set by OSS rather than developers, this file can be included in the deployment directory as an external file (i.e. not packaged in the tar file). 
+
+If this file is present in the deployment directory then it will override any file with the same name included in the tar file.
 
 ## Staging Process
 The buildpack extracts and deploys the package provided in the push directory and then performs the following steps:
