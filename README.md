@@ -1,4 +1,4 @@
-# Pentaho PDI Buildpack
+# Pentaho 4 PDI Buildpack
 
 The pentaho-pdi-buildpack is a Cloud Foundry buildpack for running Pentaho Data Integration (PDI) jobs. It is intended to allow projects based on the standard PDI templates ([pentaho3-pdi](https://github.com/voxgen/pentaho3-pdi) and [pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi)) to be deployed to a Stackato PaaS, but it makes minimal assumptions about the actual package to be deployed.
 
