@@ -18,6 +18,14 @@ applications:
   ...
 ```
 
+Note that deploying a Pentaho PDI application can take some time as the packaged staged application (droplet) is very large. During the creation and upload of the droplet no log entries are created, which can mean that the Stackato command line client ends with the following message: `Error: Application is taking too long to start (121 seconds since last log entry), check your logs`. 
+
+In this case, the push process is still running and you can monitor it by tailing the log stream via `stackato logs --follow`, but you can also avoid this situation by increasing the timeout on the push command, e.g. to allow 5 minutes without log entries, use
+
+```
+stackato push --timeout 5m
+```
+
 ## Requirements for a Deployable App
 
 In addition to the usual `manifest.yml` file, the directory that you are pushing from must contain a `kettle.properties` file containing the usual settings as used in the template PDI projects along with a `.tar.gz` package containing the ETL jobs, transformations, scripts etc. In addition, it can include a `hlpr_call_entry_points_friendly_names.csv` file to specify the configured DNIS numbers.
@@ -128,13 +136,13 @@ stackato:
     - $HOME/db/report_db_schema.sh
 ```
 
-It may also be necessary to run some one-off manual ETL jobs before starting the scheduled jobs (e.g. to fill helper dimensions). These can be executed via `pre-running` hooks, as shown below:
+In the latest version of [pentaho4-pdi](https://github.com/voxgen/pentaho4-pdi) it is no longer necessary to run a `loadHelpers` job to set-up helper dimensions - this is now done as part of the `loadIncremental` job. If you do, however, need to run a manual ETL job before starting the scheduled jobs then it can be executed via a `pre-running` hook, as shown below:
 
 ```
 stackato:
   hooks:
     pre-running:
-    - $HOME/scripts/loadHelpers.sh
+    - $HOME/scripts/myJob.sh
 ```
 
 Note that any ETL jobs or transformations that rely on the `ETL_DIR` variable in `kettle.properties` can *not* be run in a post-staging hook - the reason for this is that the `ETL_DIR` variable will be set to the required location for the running app, but the job and transformation files will actually be in a different (temporary) location whilst staging. ETL jobs that rely on this variable can therefore only be run once staging is complete and the app is about to enter a running state. 
@@ -243,3 +251,11 @@ Creating zip file
   adding: profile/setenv.sh (deflated 40%)
 done
 ```
+
+The buildpack zip file can be uploaded to Stackato using:
+
+```
+stackato create-buildpack <name> <zip file>
+```
+
+You can set options such as `--position` in order to determine where in the list of buildpacks it should be added (Stackato tries each buildpack in sequence starting at postion 1 until it finds one that can deploy the package being pushed).
