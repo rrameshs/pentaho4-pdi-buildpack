@@ -6,7 +6,7 @@ The pentaho-pdi-buildpack is a Cloud Foundry buildpack for running Pentaho Data 
 If this buildpack has been uploaded to Stackato then you only need to include a `kettle.properties` file in the directory you are pushing from for it to be used. Alternatively, there are two ways to manually specify this buildpack - either specify the URI of this GitHub repository as a parameter when pushing an application to Cloud Foundry:
 
 ```bash
-stackato push --buildpack https://github.com/voxgen/pentaho-pdi-buildpack.git
+stackato push --buildpack https://github.com/voxgen/pentaho4-pdi-buildpack.git
 ```
 
 or else specify it within the `manifest.yml` in the directory that you are pushing from:
@@ -14,7 +14,7 @@ or else specify it within the `manifest.yml` in the directory that you are pushi
 ```
 applications:
 - name: my-app
-  buildpack: https://github.com/voxgen/pentaho-pdi-buildpack.git
+  buildpack: https://github.com/voxgen/pentaho4-pdi-buildpack.git
   ...
 ```
 
